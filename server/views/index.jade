@@ -1,0 +1,17 @@
+extends layout
+
+block content
+    .preview
+    .photo-bar
+        span.remaining.remaining-3 3
+        span.remaining.remaining-2 2
+        span.remaining.remaining-1 1
+        span.remaining.remaining-0: span.glyphicon.glyphicon-camera
+    .flash
+    .error: div
+        strong Camera error!
+        br
+        | Please try again
+
+    script(src='http://code.jquery.com/jquery-2.1.4.min.js')
+    script(src='/javascripts/script.js')
