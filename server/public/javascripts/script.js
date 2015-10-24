@@ -1,28 +1,45 @@
-io = io.connect();
+function Button(io) {
+    this.io = io;
+}
+heir.inherit(Button, EventEmitter);
 
-var flashLed = {
-    phaseDuration: 1250,
-
-    start: function() {
-        if (flashLed._timeout) return;
-        flashLed._on = true;
-        flashLed._tick();
-    },
-
-    stop: function() {
-        if (!flashLed._timeout) return;
-        clearTimeout(flashLed._timeout);
-        flashLed._timeout = null;
-    },
-
-    _tick: function() {
-        io.emit('led:set', flashLed._on);
-        flashLed._on = !flashLed._on;
-        flashLed._timeout = setTimeout(flashLed._tick, flashLed.phaseDuration);
-    }
+Button.prototype.setLED = function(state) {
+    this.io.emit('led:set', state);
 };
 
-flashLed.start();
+/**/
+
+function ButtonBlink(button) {
+    this.button = button;
+    this.phaseDuration = 1250;
+}
+
+ButtonBlink.prototype.start = function() {
+    if (this._timeout) return;
+    this._on = true;
+    this._tick();
+};
+
+ButtonBlink.prototype.stop = function() {
+    if (!this._timeout) return;
+    clearTimeout(this._timeout);
+    this._timeout = null;
+};
+
+ButtonBlink.prototype._tick = function() {
+    this.button.setLED(this._on);
+    this._on = !this._on;
+    this._timeout = setTimeout(this._tick.bind(this), this.phaseDuration);
+}
+
+/**/
+
+io = io.connect();
+
+var button = new Button(io);
+var buttonBlink = new ButtonBlink(button);
+
+buttonBlink.start();
 
 io.on('button:press', function() {
     takePhoto();
@@ -41,9 +58,10 @@ function takePhoto() {
 
     takePhoto._active = true;
 
-    flashLed.stop();
+    buttonBlink.stop();
     io.emit('led:set', true);
 
+    $('.attract').hide();
     $('.photo-bar').show();
 
     var remaining = 7;
@@ -67,7 +85,8 @@ function takePhoto() {
             $img.on('load', function() {
                 $('.flash').hide();
                 takePhoto._active = false;
-                flashLed.start();
+                $('.attract').show();
+                buttonBlink.start();
             });
 
             $img.on('error', function() {
@@ -76,7 +95,8 @@ function takePhoto() {
                 setTimeout(function() {
                     $('.error').fadeOut(250, function() {
                         takePhoto._active = false;
-                        flashLed.start();
+                        $('.attract').show();
+                        buttonBlink.start();
                     });
                 }, 2000);
             });

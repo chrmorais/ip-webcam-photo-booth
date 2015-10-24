@@ -2,19 +2,29 @@ extends layout
 
 block content
     .preview
+
+    .attract
+        strong Take a photo!<br>
+        span.glyphicon.glyphicon-arrow-down
+        | Press the button
+        span.glyphicon.glyphicon-arrow-down
+
     .photo-bar
         span.remaining.remaining-5 5
         span.remaining.remaining-4 4
         span.remaining.remaining-3 3
         span.remaining.remaining-2 2
         span.remaining.remaining-1 1
-        span.remaining.remaining-0: span.glyphicon.glyphicon-camera
-    .flash
+        span.remaining.remaining-0: .glyphicon.glyphicon-camera
+
     .error: div
-        strong Camera error!
-        br
+        strong Camera error!<br>
         | Please try again
+
+    .flash
 
     script(src='http://code.jquery.com/jquery-2.1.4.min.js')
     script(src='/socket.io/socket.io.js')
+    script(src='/components/heir/heir.js')
+    script(src='/components/eventemitter3/index.js')
     script(src='/javascripts/script.js')

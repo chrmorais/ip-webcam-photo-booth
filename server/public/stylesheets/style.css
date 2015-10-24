@@ -20,6 +20,27 @@ body {
     position: absolute;
 }
 
+.attract {
+    background: rgba(67, 69, 242, 0.8);
+    color: #fff;
+    font-family: 'Helvetica Neue';
+    font-size: 45px;
+    position: absolute;
+    text-align: center;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+}
+
+.attract strong {
+    font-size: 55px;
+}
+
+.attract .glyphicon {
+    font-size: 35px;
+    margin: 0 1em;
+}
+
 .photo-bar {
     background: #f24345;
     color: #fff;

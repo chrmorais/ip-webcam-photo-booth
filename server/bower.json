@@ -1,0 +1,21 @@
+{
+  "name": "server",
+  "version": "0.0.0",
+  "homepage": "https://github.com/nathforge/ip-webcam-photo-booth",
+  "authors": [
+    "Nathan Reynolds <email@nreynolds.co.uk>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "eventemitter3": "~1.1.1",
+    "heir": "~3.0.0"
+  }
+}
