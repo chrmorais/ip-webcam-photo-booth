@@ -3,6 +3,8 @@ extends layout
 block content
     .preview
     .photo-bar
+        span.remaining.remaining-5 5
+        span.remaining.remaining-4 4
         span.remaining.remaining-3 3
         span.remaining.remaining-2 2
         span.remaining.remaining-1 1
@@ -14,4 +16,5 @@ block content
         | Please try again
 
     script(src='http://code.jquery.com/jquery-2.1.4.min.js')
+    script(src='/socket.io/socket.io.js')
     script(src='/javascripts/script.js')

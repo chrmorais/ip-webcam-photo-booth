@@ -1,9 +1,37 @@
-$(function() {
-    $('body').on('keypress', function(e) {
-        if (String.fromCharCode(e.keyCode) === ' ') {
-            takePhoto();
-        }
-    });
+io = io.connect();
+
+var flashLed = {
+    phaseDuration: 1250,
+
+    start: function() {
+        if (flashLed._timeout) return;
+        flashLed._on = true;
+        flashLed._tick();
+    },
+
+    stop: function() {
+        if (!flashLed._timeout) return;
+        clearTimeout(flashLed._timeout);
+        flashLed._timeout = null;
+    },
+
+    _tick: function() {
+        io.emit('led:set', flashLed._on);
+        flashLed._on = !flashLed._on;
+        flashLed._timeout = setTimeout(flashLed._tick, flashLed.phaseDuration);
+    }
+};
+
+flashLed.start();
+
+io.on('button:press', function() {
+    takePhoto();
+});
+
+$('body').on('keypress', function(e) {
+    if (String.fromCharCode(e.keyCode) === ' ') {
+        takePhoto();
+    }
 });
 
 function takePhoto() {
@@ -13,9 +41,12 @@ function takePhoto() {
 
     takePhoto._active = true;
 
+    flashLed.stop();
+    io.emit('led:set', true);
+
     $('.photo-bar').show();
 
-    var remaining = 5;
+    var remaining = 7;
 
     function tick() {
         remaining--;
@@ -36,6 +67,7 @@ function takePhoto() {
             $img.on('load', function() {
                 $('.flash').hide();
                 takePhoto._active = false;
+                flashLed.start();
             });
 
             $img.on('error', function() {
@@ -44,6 +76,7 @@ function takePhoto() {
                 setTimeout(function() {
                     $('.error').fadeOut(250, function() {
                         takePhoto._active = false;
+                        flashLed.start();
                     });
                 }, 2000);
             });
