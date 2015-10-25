@@ -6,17 +6,16 @@ TODO:
 var App = Backbone.Model.extend({
     defaults: {
         // State. One of:
+        //     * error
         //     * attract
         //     * countdown
         //     * takePhoto
         //     * photo
-        //     * error
         state: undefined,
 
         countdownTime: undefined,
-        countdownRemaining: undefined,
 
-        photo: undefined
+        $photo: undefined
     },
 
     initialize: function() {
@@ -24,60 +23,7 @@ var App = Backbone.Model.extend({
     },
 
     didChangeState: function(_, state) {
-        switch (state) {
-            case 'countdown':
-                this.set('countdownRemaining', this.get('countdownTime'));
-                this._scheduleCountdownTick();
-                break;
-
-            case 'takePhoto':
-                this._$photo = $('<img>')
-                    .on('load', this.onImgLoad.bind(this))
-                    .on('error', this.onImgError.bind(this))
-                    .attr('src', '/photo?' + Math.random());
-                break;
-
-            case 'photo':
-                setTimeout(this.set.bind(this, 'state', 'attract'), 3000);
-                break;
-
-            case 'error':
-                setTimeout(this.set.bind(this, 'state', 'attract'), 3000)
-                break;
-        }
-    },
-
-    onImgLoad: function() {
-        this.set('$photo', this._$photo.clone());
-        this._$photo.remove();
-        delete this._$photo;
-
-        this.set('state', 'photo');
-    },
-
-    onImgError: function() {
-        this._$photo.remove();
-        delete this._$photo;
-
-        this.set('state', 'error');
-    },
-
-    _scheduleCountdownTick: function() {
-        this._countdownTimeout = setTimeout(this._countdownTick.bind(this), 1000);
-    },
-
-    _countdownTick: function() {
-        var remaining = this.get('countdownRemaining') - 1;
-
-        console.log('Countdown: ' + remaining);
-
-        if (remaining > 0) {
-            this.set('countdownRemaining', remaining);
-            this._scheduleCountdownTick();
-            return;
-        }
-
-        this.set('state', 'takePhoto');
+        console.log('app: state: ' + state);
     }
 });
 
@@ -109,6 +55,7 @@ var ErrorView = Backbone.View.extend({
     render: function() {
         if (this.model.get('state') === 'error') {
             this.$el.slideDown(200);
+            setTimeout(this.model.set.bind(this.model, 'state', 'attract'), 3000);
         } else {
             this.$el.slideUp(200);
         }
@@ -135,9 +82,10 @@ var CountdownView = Backbone.View.extend({
     el: '.countdown',
 
     initialize: function() {
+        this.listenTo(this.model, 'change:state', this.didChangeState);
+
         this.listenTo(this.model, 'change:state', this.render);
         this.listenTo(this.model, 'change:countdownTime', this.render);
-        this.listenTo(this.model, 'change:countdownRemaining', this.render);
     },
 
     render: function() {
@@ -153,7 +101,7 @@ var CountdownView = Backbone.View.extend({
 
         $numbers.find('.remaining').removeClass('active')
 
-        var activeNumberIndex = this.model.get('countdownTime') - this.model.get('countdownRemaining') - 1;
+        var activeNumberIndex = this.model.get('countdownTime') - this.remaining - 1;
         if (activeNumberIndex >= 0) {
             $numbers.find('.remaining').eq(activeNumberIndex).addClass('active');
         }
@@ -163,11 +111,38 @@ var CountdownView = Backbone.View.extend({
         } else {
             this.$el.slideUp(200);
         }
+    },
+
+    didChangeState: function() {
+        if (this.model.get('state') === 'countdown') {
+            this.remaining = this.model.get('countdownTime');
+            this.scheduleTick();
+        } else {
+            clearTimeout(this.timeout);
+        }
+    },
+
+    scheduleTick: function() {
+        this.timeout = setTimeout(this.tick.bind(this), 1000);
+    },
+
+    tick: function() {
+        this.remaining--;
+        this.render();
+
+        console.log('countdown: remaining: ' + this.remaining);
+
+        if (this.remaining > 0) {
+            this.scheduleTick();
+            return;
+        }
+
+        this.model.set('state', 'takePhoto');
     }
 });
 
-var FlashView = Backbone.View.extend({
-    el: '.flash',
+var TakePhotoView = Backbone.View.extend({
+    el: '.take-photo',
 
     initialize: function() {
         this.listenTo(this.model, 'change:state', this.render);
@@ -176,9 +151,29 @@ var FlashView = Backbone.View.extend({
     render: function() {
         if (this.model.get('state') === 'takePhoto') {
             this.$el.show();
+
+            this.$photo = $('<img>')
+                .on('load', this.onPhotoLoad.bind(this))
+                .on('error', this.onPhotoError.bind(this))
+                .attr('src', '/photo?' + Math.random());
         } else {
             this.$el.fadeOut(1000);
         }
+    },
+
+    onPhotoLoad: function() {
+        this.model.set('$photo', this.$photo.clone());
+        this.$photo.remove();
+        delete this.$photo;
+
+        this.model.set('state', 'photo');
+    },
+
+    onPhotoError: function() {
+        this.$photo.remove();
+        delete this.$photo;
+
+        this.model.set('state', 'error');
     }
 });
 
@@ -195,21 +190,21 @@ var PhotoView = Backbone.View.extend({
 
             this.$el.find('.image').empty().append($photo);
             this.$el.show();
+
+            setTimeout(this.model.set.bind(this.model, 'state', 'attract'), 3000);
         } else {
             this.$el.fadeOut(200);
         }
     }
 });
 
-//
-
-var app = new App({ countdownTime: 6 });
+var app = new App({ countdownTime: 1 });
 
 new AppView({ model: app, takePhotoKeyCode: ' '.charCodeAt(0) });
 new ErrorView({ model: app });
 new AttractView({ model: app });
 new CountdownView({ model: app });
-new FlashView({ model: app });
+new TakePhotoView({ model: app });
 new PhotoView({ model: app });
 
 app.set('state', 'attract');
