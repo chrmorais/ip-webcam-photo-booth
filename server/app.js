@@ -5,6 +5,7 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var SerialPort = require('serialport').SerialPort;
 
 var indexRoutes = require('./routes/index');
 var previewRoutes = require('./routes/preview');
@@ -26,25 +27,26 @@ app.use('/', indexRoutes);
 app.use('/preview', previewRoutes);
 app.use('/photo', photoRoutes);
 
-app.io.route('led', {
-    set: function(req) {
-        app.get('BUTTON_WRITE').write(req.data ? '1' : '0');
-    }
-});
-
 app.set('IP_CAMERA_URL', 'http://192.168.1.206:8080');
 app.set('PHOTO_PATH', __dirname + '/photos');
 
-app.set('BUTTON_SERIAL_FILENAME', '/dev/cu.usbmodemfa131');
-app.set('BUTTON_READ', fs.createReadStream(app.get('BUTTON_SERIAL_FILENAME')));
-app.set('BUTTON_WRITE', fs.createWriteStream(app.get('BUTTON_SERIAL_FILENAME')));
+app.set('BUTTON_SERIAL_PORT', '/dev/cu.usbmodemfa131');
 
-app.get('BUTTON_READ').on('data', function(data) {
-    data = data.toString();
-    if (data === 'b') {
-        app.io.broadcast('button:press');
-    }
-});
+if (app.get('BUTTON_SERIAL_PORT')) {
+    var serialPort = new SerialPort(app.get('BUTTON_SERIAL_PORT'));
+
+    serialPort.on('data', function(data) {
+        if (data.toString() === 'b') {
+            app.io.broadcast('button:press');
+        }
+    });
+
+    app.io.route('led', {
+        set: function(req) {
+            serialPort.write(req.data ? '1' : '0');
+        }
+    });
+}
 
 app.use(function(req, res, next) {
     var err = new Error('Not Found');

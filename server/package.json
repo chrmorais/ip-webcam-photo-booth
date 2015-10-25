@@ -16,6 +16,7 @@
     "mkdirp": "^0.5.1",
     "morgan": "~1.6.1",
     "request": "^2.65.0",
+    "serialport": "^2.0.2",
     "serve-favicon": "~2.3.0"
   }
 }
