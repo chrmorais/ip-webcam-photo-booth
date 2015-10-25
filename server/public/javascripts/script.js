@@ -250,9 +250,12 @@ var PhotoView = Backbone.View.extend({
 
     render: function() {
         if (this.model.get('state') === 'photo') {
+            var $image = this.$el.find('.image');
             var $photo = this.model.get('$photo');
 
-            this.$el.find('.image').empty().append($photo);
+            $image.empty().append($photo);
+            $image.css({ transform: 'rotate(' + ((Math.random() * 20) - 10) + 'deg)' });
+
             this.$el.show();
 
             setTimeout(this.model.set.bind(this.model, 'state', 'attract'), 3000);
