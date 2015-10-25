@@ -26,19 +26,16 @@ app.use('/', indexRoutes);
 app.use('/preview', previewRoutes);
 app.use('/photo', photoRoutes);
 
-/*
 app.io.route('led', {
     set: function(req) {
         app.get('BUTTON_WRITE').write(req.data ? '1' : '0');
     }
 });
-*/
 
 app.set('IP_CAMERA_URL', 'http://192.168.1.206:8080');
 app.set('PHOTO_PATH', __dirname + '/photos');
 
-/*
-app.set('BUTTON_SERIAL_FILENAME', '/dev/cu.usbmodemfd121');
+app.set('BUTTON_SERIAL_FILENAME', '/dev/cu.usbmodemfa131');
 app.set('BUTTON_READ', fs.createReadStream(app.get('BUTTON_SERIAL_FILENAME')));
 app.set('BUTTON_WRITE', fs.createWriteStream(app.get('BUTTON_SERIAL_FILENAME')));
 
@@ -48,7 +45,6 @@ app.get('BUTTON_READ').on('data', function(data) {
         app.io.broadcast('button:press');
     }
 });
-*/
 
 app.use(function(req, res, next) {
     var err = new Error('Not Found');

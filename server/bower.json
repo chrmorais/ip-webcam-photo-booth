@@ -15,8 +15,6 @@
     "tests"
   ],
   "dependencies": {
-    "eventemitter3": "~1.1.1",
-    "heir": "~3.0.0",
     "backbone": "~1.2.3"
   }
 }
