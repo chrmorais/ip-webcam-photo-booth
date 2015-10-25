@@ -80,13 +80,43 @@ function takePhoto() {
         $('.photo-bar').hide();
 
         $('.flash').fadeIn(150, function() {
-            var $img = $('<img>');
+            var $photo = $('.photo');
+            var $img = $photo.find('img');
+
+            $photo.css({
+                width: 'auto',
+                height: 'auto'
+            });
 
             $img.on('load', function() {
-                $('.flash').hide();
-                takePhoto._active = false;
-                $('.attract').show();
-                buttonBlink.start();
+                $photo.show();
+
+                var windowHeight = $(window).innerHeight();
+
+                var imgWidth = $img.width();
+                var imgHeight = $img.height();
+
+                $photo.css({
+                    width: windowHeight * 0.75 / (imgHeight / imgWidth),
+                    height: windowHeight * 0.75
+                });
+
+                $('.photo-backdrop').show();
+                $photo.show();
+
+                $('.flash').fadeOut(500);
+
+                setTimeout(function() {
+                    $('.photo').fadeOut(200, function() {
+                        $('.photo-backdrop').fadeOut(400, function() {
+                            setTimeout(function() {
+                                takePhoto._active = false;
+                                $('.attract').fadeIn(200);
+                                buttonBlink.start();
+                            }, 300);
+                        });
+                    });
+                }, 3000);
             });
 
             $img.on('error', function() {
