@@ -8,26 +8,28 @@ block content
         | Take a picture!
         span.glyphicon.glyphicon-arrow-down(style='float: right')
 
-    .photo-bar
-        span.remaining.remaining-5 5
-        span.remaining.remaining-4 4
-        span.remaining.remaining-3 3
-        span.remaining.remaining-2 2
-        span.remaining.remaining-1 1
+    .countdown
+        span.numbers
+        //span.remaining.remaining-5 5
+        //span.remaining.remaining-4 4
+        //span.remaining.remaining-3 3
+        //span.remaining.remaining-2 2
+        //span.remaining.remaining-1 1
         span.remaining.remaining-0: .glyphicon.glyphicon-camera
 
-    .error: div
-        strong Camera error!<br>
-        | Please try again
+    .error
+        | Camera error!
 
-    .photo-backdrop
     .photo
-        img(src='/photos/2015-10-25T07.12.31.jpg')
+        .backdrop
+        .image
 
     .flash
 
     script(src='http://code.jquery.com/jquery-2.1.4.min.js')
+    //script(src='/components/heir/heir.js')
+    //script(src='/components/eventemitter3/index.js')
+    script(src='/components/underscore/underscore-min.js')
+    script(src='/components/backbone/backbone-min.js')
     script(src='/socket.io/socket.io.js')
-    script(src='/components/heir/heir.js')
-    script(src='/components/eventemitter3/index.js')
     script(src='/javascripts/script.js')

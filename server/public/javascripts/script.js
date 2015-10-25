@@ -1,139 +1,215 @@
-function Button(io) {
-    this.io = io;
-}
-heir.inherit(Button, EventEmitter);
+/*
+TODO:
+    * Arduino button integration (socket.io)
+*/
 
-Button.prototype.setLED = function(state) {
-    this.io.emit('led:set', state);
-};
+var App = Backbone.Model.extend({
+    defaults: {
+        // State. One of:
+        //     * attract
+        //     * countdown
+        //     * takePhoto
+        //     * photo
+        //     * error
+        state: undefined,
 
-/**/
+        countdownTime: undefined,
+        countdownRemaining: undefined,
 
-function ButtonBlink(button) {
-    this.button = button;
-    this.phaseDuration = 1250;
-}
+        photo: undefined
+    },
 
-ButtonBlink.prototype.start = function() {
-    if (this._timeout) return;
-    this._on = true;
-    this._tick();
-};
+    initialize: function() {
+        this.on('change:state', this.didChangeState);
+    },
 
-ButtonBlink.prototype.stop = function() {
-    if (!this._timeout) return;
-    clearTimeout(this._timeout);
-    this._timeout = null;
-};
+    didChangeState: function(_, state) {
+        switch (state) {
+            case 'countdown':
+                this.set('countdownRemaining', this.get('countdownTime'));
+                this._scheduleCountdownTick();
+                break;
 
-ButtonBlink.prototype._tick = function() {
-    this.button.setLED(this._on);
-    this._on = !this._on;
-    this._timeout = setTimeout(this._tick.bind(this), this.phaseDuration);
-}
+            case 'takePhoto':
+                this._$photo = $('<img>')
+                    .on('load', this.onImgLoad.bind(this))
+                    .on('error', this.onImgError.bind(this))
+                    .attr('src', '/photo?' + Math.random());
+                break;
 
-/**/
+            case 'photo':
+                setTimeout(this.set.bind(this, 'state', 'attract'), 3000);
+                break;
 
-io = io.connect();
+            case 'error':
+                setTimeout(this.set.bind(this, 'state', 'attract'), 3000)
+                break;
+        }
+    },
 
-var button = new Button(io);
-var buttonBlink = new ButtonBlink(button);
+    onImgLoad: function() {
+        this.set('$photo', this._$photo.clone());
+        this._$photo.remove();
+        delete this._$photo;
 
-buttonBlink.start();
+        this.set('state', 'photo');
+    },
 
-io.on('button:press', function() {
-    takePhoto();
-});
+    onImgError: function() {
+        this._$photo.remove();
+        delete this._$photo;
 
-$('body').on('keypress', function(e) {
-    if (String.fromCharCode(e.keyCode) === ' ') {
-        takePhoto();
-    }
-});
+        this.set('state', 'error');
+    },
 
-function takePhoto() {
-    if (takePhoto._active) {
-        return;
-    }
+    _scheduleCountdownTick: function() {
+        this._countdownTimeout = setTimeout(this._countdownTick.bind(this), 1000);
+    },
 
-    takePhoto._active = true;
+    _countdownTick: function() {
+        var remaining = this.get('countdownRemaining') - 1;
 
-    buttonBlink.stop();
-    io.emit('led:set', true);
-
-    $('.attract').slideUp(200);
-    $('.photo-bar').slideDown(200);
-
-    var remaining = 7;
-
-    function tick() {
-        remaining--;
-
-        $('.photo-bar .remaining').removeClass('active');
-        $('.photo-bar .remaining-' + remaining).addClass('active');
+        console.log('Countdown: ' + remaining);
 
         if (remaining > 0) {
-            setTimeout(tick, 1000);
+            this.set('countdownRemaining', remaining);
+            this._scheduleCountdownTick();
             return;
         }
 
-        $('.photo-bar').hide();
-
-        $('.flash').fadeIn(150, function() {
-            var $photo = $('.photo');
-            var $img = $photo.find('img');
-
-            $photo.css({
-                width: 'auto',
-                height: 'auto'
-            });
-
-            $img.on('load', function() {
-                $photo.show();
-
-                var windowHeight = $(window).innerHeight();
-
-                var imgWidth = $img.width();
-                var imgHeight = $img.height();
-
-                $photo.css({
-                    width: windowHeight * 0.75 / (imgHeight / imgWidth),
-                    height: windowHeight * 0.75
-                });
-
-                $('.photo-backdrop').show();
-                $photo.show();
-
-                $('.flash').fadeOut(500);
-
-                setTimeout(function() {
-                    $('.photo').fadeOut(200, function() {
-                        $('.photo-backdrop').fadeOut(400, function() {
-                            setTimeout(function() {
-                                takePhoto._active = false;
-                                $('.attract').fadeIn(200);
-                                buttonBlink.start();
-                            }, 300);
-                        });
-                    });
-                }, 3000);
-            });
-
-            $img.on('error', function() {
-                $('.flash').hide();
-                $('.error').show();
-                setTimeout(function() {
-                    $('.error').fadeOut(250, function() {
-                        takePhoto._active = false;
-                        $('.attract').show();
-                        buttonBlink.start();
-                    });
-                }, 2000);
-            });
-
-            $img.attr('src', 'photo?' + Math.random());
-        });
+        this.set('state', 'takePhoto');
     }
+});
 
-    tick();
-}
+var AppView = Backbone.View.extend({
+    el: 'body',
+
+    events: {
+        'keypress': 'onKeyPress'
+    },
+
+    initialize: function(options) {
+        this.takePhotoKeyCode = options.takePhotoKeyCode;
+    },
+
+    onKeyPress: function(e) {
+        if (e.keyCode === this.takePhotoKeyCode && this.model.get('state') === 'attract') {
+            this.model.set('state', 'countdown');
+        }
+    }
+});
+
+var ErrorView = Backbone.View.extend({
+    el: '.error',
+
+    initialize: function() {
+        this.listenTo(this.model, 'change:state', this.render);
+    },
+
+    render: function() {
+        if (this.model.get('state') === 'error') {
+            this.$el.slideDown(200);
+        } else {
+            this.$el.slideUp(200);
+        }
+    }
+});
+
+var AttractView = Backbone.View.extend({
+    el: '.attract',
+
+    initialize: function() {
+        this.listenTo(this.model, 'change:state', this.render);
+    },
+
+    render: function() {
+        if (this.model.get('state') === 'attract') {
+            this.$el.slideDown(200);
+        } else {
+            this.$el.slideUp(200);
+        }
+    }
+});
+
+var CountdownView = Backbone.View.extend({
+    el: '.countdown',
+
+    initialize: function() {
+        this.listenTo(this.model, 'change:state', this.render);
+        this.listenTo(this.model, 'change:countdownTime', this.render);
+        this.listenTo(this.model, 'change:countdownRemaining', this.render);
+    },
+
+    render: function() {
+        var $numbers = this.$el.find('.numbers');
+
+        if (this.model.get('countdownTime') !== $numbers.find('.remaining').length) {
+            $numbers.empty();
+
+            for (var i = this.model.get('countdownTime') - 1; i > 0; i--) {
+                $('<span>').addClass('remaining').text(i).appendTo($numbers);
+            }
+        }
+
+        $numbers.find('.remaining').removeClass('active')
+
+        var activeNumberIndex = this.model.get('countdownTime') - this.model.get('countdownRemaining') - 1;
+        if (activeNumberIndex >= 0) {
+            $numbers.find('.remaining').eq(activeNumberIndex).addClass('active');
+        }
+
+        if (this.model.get('state') === 'countdown') {
+            this.$el.slideDown(200);
+        } else {
+            this.$el.slideUp(200);
+        }
+    }
+});
+
+var FlashView = Backbone.View.extend({
+    el: '.flash',
+
+    initialize: function() {
+        this.listenTo(this.model, 'change:state', this.render);
+    },
+
+    render: function() {
+        if (this.model.get('state') === 'takePhoto') {
+            this.$el.show();
+        } else {
+            this.$el.fadeOut(1000);
+        }
+    }
+});
+
+var PhotoView = Backbone.View.extend({
+    el: '.photo',
+
+    initialize: function() {
+        this.listenTo(this.model, 'change:state', this.render);
+    },
+
+    render: function() {
+        if (this.model.get('state') === 'photo') {
+            var $photo = this.model.get('$photo');
+
+            this.$el.find('.image').empty().append($photo);
+            this.$el.show();
+        } else {
+            this.$el.fadeOut(200);
+        }
+    }
+});
+
+//
+
+var app = new App({ countdownTime: 6 });
+
+new AppView({ model: app, takePhotoKeyCode: ' '.charCodeAt(0) });
+new ErrorView({ model: app });
+new AttractView({ model: app });
+new CountdownView({ model: app });
+new FlashView({ model: app });
+new PhotoView({ model: app });
+
+app.set('state', 'attract');
