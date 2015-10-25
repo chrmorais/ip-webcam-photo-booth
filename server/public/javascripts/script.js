@@ -23,6 +23,10 @@ var App = Backbone.Model.extend({
         }
     },
 
+    capturePhoto: function(img) {
+        $(img).attr('src', '/photo?' + Math.random());
+    },
+
     didChangeState: function(_, state) {
         console.log('App: state=' + state);
     }
@@ -213,8 +217,9 @@ var TakePhotoView = Backbone.View.extend({
 
             this.$photo = $('<img>')
                 .on('load', this.onPhotoLoad.bind(this))
-                .on('error', this.onPhotoError.bind(this))
-                .attr('src', '/photo?' + Math.random());
+                .on('error', this.onPhotoError.bind(this));
+
+            this.model.capturePhoto(this.$photo);
         } else {
             this.$el.fadeOut(1000);
         }
