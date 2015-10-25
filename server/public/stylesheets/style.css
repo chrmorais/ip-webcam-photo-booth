@@ -43,14 +43,15 @@ body {
     animation-iteration-count: infinite;
     font-size: 35px;
     margin: 0 1em;
+    padding-top: 8px;
 }
 
 @keyframes attract-arrow {
     0% {
-        padding-top: 0px;
+        padding-top: 8px;
     }
     50% {
-        padding-top: 12px;
+        padding-top: 20px;
     }
 }
 

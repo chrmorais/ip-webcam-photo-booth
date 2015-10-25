@@ -32,7 +32,7 @@ app.io.route('led', {
     }
 });
 
-app.set('IP_CAMERA_URL', 'http://192.168.1.198:8080');
+app.set('IP_CAMERA_URL', 'http://192.168.1.206:8080');
 app.set('PHOTO_PATH', __dirname + '/photos');
 
 app.set('BUTTON_SERIAL_FILENAME', '/dev/cu.usbmodemfd121');

@@ -61,8 +61,8 @@ function takePhoto() {
     buttonBlink.stop();
     io.emit('led:set', true);
 
-    $('.attract').hide();
-    $('.photo-bar').show();
+    $('.attract').slideUp(200);
+    $('.photo-bar').slideDown(200);
 
     var remaining = 7;
 
