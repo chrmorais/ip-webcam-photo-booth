@@ -57,7 +57,7 @@ body {
 }
 
 .photo-bar {
-    background: #f24345;
+    background: #d22325;
     color: #fff;
     font-family: 'Helvetica Neue';
     font-size: 80px;
@@ -71,7 +71,7 @@ body {
 
 .photo-bar .remaining {
     margin: 0 0.5em;
-    opacity: 0.5;
+    opacity: 0.25;
 }
 
 .photo-bar .active {
