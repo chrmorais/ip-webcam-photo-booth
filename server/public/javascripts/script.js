@@ -32,64 +32,6 @@ var App = Backbone.Model.extend({
     }
 });
 
-var ArduinoButtonView = Backbone.View.extend({
-    initialize: function(options) {
-        this.blinkOnDuration = options.blinkOnDuration;
-        this.blinkOffDuration = options.blinkOffDuration;
-
-        this.listenTo(this.model, 'change:state', this.didChangeState);
-
-        io.on('button:press', this.didPressButton.bind(this));
-    },
-
-    didChangeState: function(_, state) {
-        clearTimeout(this.blinkTimeout);
-
-        switch (state) {
-            case 'attract':
-                this.setLEDOn(true);
-                this.scheduleBlinkTick();
-                break;
-
-            case 'takePhoto':
-                this.setLEDOn(true);
-                break;
-
-            default:
-                this.setLEDOn(false);
-                break;
-        }
-    },
-
-    didPressButton: function() {
-        this.model.takePhoto();
-    },
-
-    getLEDOn: function() {
-        return this._ledOn;
-    },
-
-    setLEDOn: function(value) {
-        if (value !== this._ledOn) {
-            this._ledOn = value;
-            io.emit('led:set', value);
-        }
-    },
-
-    scheduleBlinkTick: function() {
-        if (this.getLEDOn()) {
-            this.blinkTimeout = setTimeout(this.blinkTick.bind(this), this.blinkOnDuration);
-        } else {
-            this.blinkTimeout = setTimeout(this.blinkTick.bind(this), this.blinkOffDuration);
-        }
-    },
-
-    blinkTick: function() {
-        this.setLEDOn(!this.getLEDOn());
-        this.scheduleBlinkTick();
-    }
-});
-
 var AppView = Backbone.View.extend({
     el: 'body',
 
@@ -266,12 +208,9 @@ var PhotoView = Backbone.View.extend({
     }
 });
 
-io = io.connect();
-
 var app = new App({ countdownTime: 6 });
 
 new AppView({ model: app, takePhotoCharCode: ' '.charCodeAt(0) });
-new ArduinoButtonView({ model: app, blinkOnDuration: 1000, blinkOffDuration: 1000 });
 new ErrorView({ model: app });
 new AttractView({ model: app });
 new CountdownView({ model: app });
