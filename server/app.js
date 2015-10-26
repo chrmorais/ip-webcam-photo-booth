@@ -24,7 +24,7 @@ app.use('/', indexRoutes);
 app.use('/preview', previewRoutes);
 app.use('/photo', photoRoutes);
 
-app.set('IP_CAMERA_URL', 'http://192.168.1.206:8080');
+app.set('IP_CAMERA_URL', 'http://192.168.42.129:8080');
 app.set('PHOTO_PATH', __dirname + '/photos');
 
 app.use(function(req, res, next) {
