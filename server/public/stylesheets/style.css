@@ -5,6 +5,7 @@ html {
 
 body {
     background: #333;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 .preview {
@@ -25,7 +26,6 @@ body {
     background: rgba(67, 69, 242, 0.8);
     color: #fff;
     display: none;
-    font-family: 'Helvetica Neue';
     font-size: 45px;
     padding: 20px 0;
     position: absolute;
@@ -69,7 +69,6 @@ body {
 .countdown {
     background: #d22325;
     color: #fff;
-    font-family: 'Helvetica Neue';
     font-size: 80px;
     position: absolute;
     text-align: center;
