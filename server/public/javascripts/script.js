@@ -98,11 +98,12 @@ var AppView = Backbone.View.extend({
     },
 
     initialize: function(options) {
-        this.takePhotoKeyCode = options.takePhotoKeyCode;
+        this.takePhotoCharCode = options.takePhotoCharCode;
     },
 
     onKeyPress: function(e) {
-        if (e.keyCode === this.takePhotoKeyCode) {
+        console.log(e)
+        if (e.charCode === this.takePhotoCharCode) {
             this.model.takePhoto();
         }
     }
@@ -269,7 +270,7 @@ io = io.connect();
 
 var app = new App({ countdownTime: 6 });
 
-new AppView({ model: app, takePhotoKeyCode: ' '.charCodeAt(0) });
+new AppView({ model: app, takePhotoCharCode: ' '.charCodeAt(0) });
 new ArduinoButtonView({ model: app, blinkOnDuration: 1000, blinkOffDuration: 1000 });
 new ErrorView({ model: app });
 new AttractView({ model: app });
