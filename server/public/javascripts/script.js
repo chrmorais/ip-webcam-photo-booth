@@ -46,17 +46,12 @@ var ArduinoButtonView = Backbone.View.extend({
         clearTimeout(this.blinkTimeout);
 
         switch (state) {
-            case 'attract':
-                this.setLEDOn(true);
-                this.scheduleBlinkTick();
-                break;
-
-            case 'takePhoto':
-                this.setLEDOn(true);
+            case 'countdown':
+                this.setLEDOn(false);
                 break;
 
             default:
-                this.setLEDOn(false);
+                this.setLEDOn(true);
                 break;
         }
     },
