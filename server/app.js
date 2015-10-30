@@ -27,23 +27,44 @@ app.use('/', indexRoutes);
 app.use('/preview', previewRoutes);
 app.use('/photo', photoRoutes);
 
-app.set('IP_CAMERA_URL', 'http://192.168.42.129:8080');
+app.set('IP_CAMERA_URL', 'http://192.168.1.198:8080');
 app.set('PHOTO_PATH', __dirname + '/photos');
 
-app.set('BUTTON_SERIAL_PORT', '/dev/cu.usbmodemfa131');
+app.set('BUTTON_SERIAL_PORT', '/dev/cu.usbmodemfd121');
 
 if (app.get('BUTTON_SERIAL_PORT')) {
     var serialPort = new SerialPort(app.get('BUTTON_SERIAL_PORT'));
 
     serialPort.on('data', function(data) {
-        if (data.toString() === 'b') {
+        data = data.toString();
+        data = data.replace(/\r?\n$/, '');
+
+        console.log('Button: incoming serial: ' + JSON.stringify(data));
+
+        if (data === 'b') {
             app.io.broadcast('button:press');
         }
     });
 
     app.io.route('led', {
-        set: function(req) {
-            serialPort.write(req.data ? '1' : '0');
+        setMode: function(req) {
+            var ledMode = req.data;
+
+            console.log('Button: set LED mode: ' + ledMode);
+
+            switch (ledMode) {
+                case 'off':
+                    serialPort.write('0');
+                    break;
+
+                case 'on':
+                    serialPort.write('1');
+                    break;
+
+                case 'fade':
+                    serialPort.write('f');
+                    break;
+            }
         }
     });
 }

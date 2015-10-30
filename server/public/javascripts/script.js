@@ -34,24 +34,22 @@ var App = Backbone.Model.extend({
 
 var ArduinoButtonView = Backbone.View.extend({
     initialize: function(options) {
-        this.blinkOnDuration = options.blinkOnDuration;
-        this.blinkOffDuration = options.blinkOffDuration;
-
         this.listenTo(this.model, 'change:state', this.didChangeState);
-
         io.on('button:press', this.didPressButton.bind(this));
     },
 
     didChangeState: function(_, state) {
-        clearTimeout(this.blinkTimeout);
-
         switch (state) {
+            case 'attract':
+                this.setLEDMode('fade');
+                break;
+
             case 'countdown':
-                this.setLEDOn(false);
+                this.setLEDMode('on');
                 break;
 
             default:
-                this.setLEDOn(true);
+                this.setLEDMode('off');
                 break;
         }
     },
@@ -60,29 +58,9 @@ var ArduinoButtonView = Backbone.View.extend({
         this.model.takePhoto();
     },
 
-    getLEDOn: function() {
-        return this._ledOn;
+    setLEDMode: function(value) {
+        io.emit('led:setMode', value);
     },
-
-    setLEDOn: function(value) {
-        if (value !== this._ledOn) {
-            this._ledOn = value;
-            io.emit('led:set', value);
-        }
-    },
-
-    scheduleBlinkTick: function() {
-        if (this.getLEDOn()) {
-            this.blinkTimeout = setTimeout(this.blinkTick.bind(this), this.blinkOnDuration);
-        } else {
-            this.blinkTimeout = setTimeout(this.blinkTick.bind(this), this.blinkOffDuration);
-        }
-    },
-
-    blinkTick: function() {
-        this.setLEDOn(!this.getLEDOn());
-        this.scheduleBlinkTick();
-    }
 });
 
 var AppView = Backbone.View.extend({
